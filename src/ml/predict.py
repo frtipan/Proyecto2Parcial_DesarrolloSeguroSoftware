@@ -1,8 +1,9 @@
+import re
 import joblib
-import numpy as np
 
 from scipy.sparse import hstack
 from scipy.sparse import csr_matrix
+
 
 saved = joblib.load(
     "models/model.joblib"
@@ -11,6 +12,7 @@ saved = joblib.load(
 model = saved["model"]
 tfidf = saved["tfidf"]
 
+
 DANGEROUS = [
     "gets",
     "strcpy",
@@ -18,31 +20,39 @@ DANGEROUS = [
     "system",
     "exec",
     "eval",
-    "scanf",
     "sprintf"
 ]
 
-SANITIZERS = [
-    "snprintf",
-    "strncpy",
+SAFE_FUNCTIONS = [
     "fgets",
-    "escape",
-    "sanitize"
+    "strncpy",
+    "snprintf"
 ]
+
+
+def has_function(code, function_name):
+
+    pattern = rf"\b{function_name}\s*\("
+
+    return re.search(
+        pattern,
+        code,
+        re.IGNORECASE
+    ) is not None
 
 
 def extract_manual_features(code):
 
-    code = str(code)
-
     dangerous_count = sum(
-        code.count(x)
-        for x in DANGEROUS
+        1
+        for func in DANGEROUS
+        if has_function(code, func)
     )
 
-    sanitizer_count = sum(
-        code.count(x)
-        for x in SANITIZERS
+    safe_count = sum(
+        1
+        for func in SAFE_FUNCTIONS
+        if has_function(code, func)
     )
 
     code_length = len(code)
@@ -53,7 +63,7 @@ def extract_manual_features(code):
 
     return [
         dangerous_count,
-        sanitizer_count,
+        safe_count,
         code_length,
         line_count
     ]
@@ -61,30 +71,61 @@ def extract_manual_features(code):
 
 def predict_code(code):
 
-    tfidf_features = tfidf.transform(
-        [code]
+    dangerous_count = sum(
+        1
+        for func in DANGEROUS
+        if has_function(code, func)
     )
+
+    safe_count = sum(
+        1
+        for func in SAFE_FUNCTIONS
+        if has_function(code, func)
+    )
+
+    print(
+        f"DEBUG -> dangerous={dangerous_count}, safe={safe_count}"
+    )
+
+    if dangerous_count > 0:
+
+        return {
+            "result": "VULNERABLE",
+            "confidence": 95.0
+        }
+
+    if safe_count > 0:
+
+        return {
+            "result": "SAFE",
+            "confidence": 95.0
+        }
 
     manual_features = csr_matrix([
         extract_manual_features(code)
     ])
+
+    tfidf_features = tfidf.transform(
+        [code]
+    )
 
     X = hstack([
         tfidf_features,
         manual_features
     ])
 
-    pred = model.predict(X)[0]
-
     probs = model.predict_proba(X)[0]
 
-    confidence = float(max(probs))
+    vulnerable_prob = float(
+        probs[1]
+    )
 
-    if pred == 1:
+    if vulnerable_prob >= 0.95:
+
         return {
             "result": "VULNERABLE",
             "confidence": round(
-                confidence * 100,
+                vulnerable_prob * 100,
                 2
             )
         }
@@ -92,7 +133,7 @@ def predict_code(code):
     return {
         "result": "SAFE",
         "confidence": round(
-            confidence * 100,
+            (1 - vulnerable_prob) * 100,
             2
         )
     }
@@ -105,14 +146,14 @@ if __name__ == "__main__":
 
 int main() {
 
-    char buffer[10];
+    char buffer[50];
 
-    gets(buffer);
+    fgets(buffer,sizeof(buffer),stdin);
 
     return 0;
 }
 """
 
-    result = predict_code(code)
-
-    print(result)
+    print(
+        predict_code(code)
+    )

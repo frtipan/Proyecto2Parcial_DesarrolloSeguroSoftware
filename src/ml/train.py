@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import joblib
 
 from scipy.sparse import hstack
@@ -7,12 +6,10 @@ from scipy.sparse import csr_matrix
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report
-)
-
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+
 
 DANGEROUS = [
     "gets",
@@ -68,38 +65,34 @@ df = pd.read_csv(
     "data/juliet_balanced.csv"
 )
 
-print(df["label"].value_counts())
-
-X_text = df["code"].astype(str)
+X_text = df["code"]
 
 y = df["label"]
 
 print("Extrayendo features manuales...")
 
-manual_features = np.array([
+manual_features = [
     extract_manual_features(code)
     for code in X_text
-])
+]
+
+manual_features = csr_matrix(
+    manual_features
+)
 
 print("Generando TF-IDF...")
 
 tfidf = TfidfVectorizer(
-    max_features=5000,
-    ngram_range=(1, 2),
-    lowercase=True
+    max_features=3000
 )
 
 X_tfidf = tfidf.fit_transform(
     X_text
 )
 
-X_manual = csr_matrix(
-    manual_features
-)
-
 X = hstack([
     X_tfidf,
-    X_manual
+    manual_features
 ])
 
 print("Dividiendo dataset...")
@@ -107,12 +100,12 @@ print("Dividiendo dataset...")
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
-    test_size=0.20,
+    test_size=0.2,
     random_state=42,
     stratify=y
 )
 
-print("Entrenando Logistic Regression...")
+print("Entrenando LogisticRegression...")
 
 model = LogisticRegression(
     max_iter=3000,
@@ -124,23 +117,23 @@ model.fit(
     y_train
 )
 
-pred = model.predict(
+preds = model.predict(
     X_test
 )
 
-accuracy = accuracy_score(
+acc = accuracy_score(
     y_test,
-    pred
+    preds
 )
 
-print("\n==========================")
-print(f"Accuracy: {accuracy:.4f}")
-print("==========================\n")
+print("\n====================")
+print(f"Accuracy: {acc:.4f}")
+print("====================\n")
 
 print(
     classification_report(
         y_test,
-        pred
+        preds
     )
 )
 
@@ -152,4 +145,4 @@ joblib.dump(
     "models/model.joblib"
 )
 
-print("Modelo guardado correctamente.")
+print("Modelo guardado.")
