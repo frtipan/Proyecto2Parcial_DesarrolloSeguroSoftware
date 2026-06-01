@@ -2,9 +2,11 @@
 
 int main() {
 
-    char buffer[10];
+    char buffer[50];
 
-    gets(buffer);
+    fgets(buffer, sizeof(buffer), stdin);
+
+    printf("%s", buffer);
 
     return 0;
 }
