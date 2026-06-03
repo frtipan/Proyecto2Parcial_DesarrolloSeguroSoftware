@@ -1,12 +1,10 @@
-#include <stdio.h>
+#include <stdlib.h>
 
 int main() {
 
-    char buffer[10];
-
-    gets(buffer);
-
-    printf("%s", buffer);
+    system(
+        "dir"
+    );
 
     return 0;
 }
