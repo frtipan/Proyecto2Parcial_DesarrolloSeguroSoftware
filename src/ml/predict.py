@@ -1,4 +1,3 @@
-import re
 import joblib
 
 from scipy.sparse import hstack
@@ -20,39 +19,37 @@ DANGEROUS = [
     "system",
     "exec",
     "eval",
+    "scanf",
     "sprintf"
 ]
 
-SAFE_FUNCTIONS = [
-    "fgets",
+SANITIZERS = [
+    "snprintf",
     "strncpy",
-    "snprintf"
+    "fgets",
+    "escape",
+    "sanitize"
 ]
 
-
-def has_function(code, function_name):
-
-    pattern = rf"\b{function_name}\s*\("
-
-    return re.search(
-        pattern,
-        code,
-        re.IGNORECASE
-    ) is not None
+SAFE_FUNCTIONS = [
+    "fgets(",
+    "strncpy(",
+    "snprintf("
+]
 
 
 def extract_manual_features(code):
 
+    code = str(code).lower()
+
     dangerous_count = sum(
-        1
-        for func in DANGEROUS
-        if has_function(code, func)
+        code.count(x)
+        for x in DANGEROUS
     )
 
-    safe_count = sum(
-        1
-        for func in SAFE_FUNCTIONS
-        if has_function(code, func)
+    sanitizer_count = sum(
+        code.count(x)
+        for x in SANITIZERS
     )
 
     code_length = len(code)
@@ -63,77 +60,120 @@ def extract_manual_features(code):
 
     return [
         dangerous_count,
-        safe_count,
+        sanitizer_count,
         code_length,
         line_count
     ]
 
 
-def predict_code(code):
+def detect_vulnerability_reason(code):
 
-    dangerous_count = sum(
-        1
-        for func in DANGEROUS
-        if has_function(code, func)
-    )
+    code = str(code).lower()
 
-    safe_count = sum(
-        1
-        for func in SAFE_FUNCTIONS
-        if has_function(code, func)
-    )
-
-    print(
-        f"DEBUG -> dangerous={dangerous_count}, safe={safe_count}"
-    )
-
-    if dangerous_count > 0:
+    if "gets(" in code:
 
         return {
-            "result": "VULNERABLE",
-            "confidence": 95.0
+            "vulnerability": "Buffer Overflow",
+            "reason": "gets() no valida el tamaño del buffer.",
+            "recommendation": "Utilizar fgets()."
         }
 
-    if safe_count > 0:
+    if "strcpy(" in code:
+
+        return {
+            "vulnerability": "Buffer Overflow",
+            "reason": "strcpy() puede copiar más datos que el tamaño permitido.",
+            "recommendation": "Utilizar strncpy()."
+        }
+
+    if "strcat(" in code:
+
+        return {
+            "vulnerability": "Buffer Overflow",
+            "reason": "strcat() puede sobrescribir memoria.",
+            "recommendation": "Utilizar strncat()."
+        }
+
+    if "system(" in code:
+
+        return {
+            "vulnerability": "Command Injection",
+            "reason": "system() ejecuta comandos del sistema operativo.",
+            "recommendation": "Validar entradas y evitar system()."
+        }
+
+    if "sprintf(" in code:
+
+        return {
+            "vulnerability": "Buffer Overflow",
+            "reason": "sprintf() no controla el tamaño del buffer.",
+            "recommendation": "Utilizar snprintf()."
+        }
+
+    return {
+        "vulnerability": "Posible vulnerabilidad",
+        "reason": "Detectada por el modelo de Machine Learning.",
+        "recommendation": "Revisar manualmente el código."
+    }
+
+
+def predict_code(code):
+
+    code_lower = str(code).lower()
+
+    # Funciones seguras conocidas
+    if any(
+        func in code_lower
+        for func in SAFE_FUNCTIONS
+    ):
 
         return {
             "result": "SAFE",
             "confidence": 95.0
         }
 
-    manual_features = csr_matrix([
-        extract_manual_features(code)
-    ])
-
     tfidf_features = tfidf.transform(
         [code]
     )
+
+    manual_features = csr_matrix([
+        extract_manual_features(code)
+    ])
 
     X = hstack([
         tfidf_features,
         manual_features
     ])
 
+    pred = model.predict(X)[0]
+
     probs = model.predict_proba(X)[0]
 
-    vulnerable_prob = float(
-        probs[1]
+    confidence = float(
+        max(probs)
     )
 
-    if vulnerable_prob >= 0.95:
+    if pred == 1:
+
+        info = detect_vulnerability_reason(
+            code
+        )
 
         return {
             "result": "VULNERABLE",
             "confidence": round(
-                vulnerable_prob * 100,
+                confidence * 100,
                 2
-            )
+            ),
+            "vulnerability": info["vulnerability"],
+            "reason": info["reason"],
+            "recommendation": info["recommendation"]
         }
 
     return {
         "result": "SAFE",
         "confidence": round(
-            (1 - vulnerable_prob) * 100,
+            confidence * 100,
             2
         )
     }
@@ -148,7 +188,11 @@ int main() {
 
     char buffer[50];
 
-    fgets(buffer,sizeof(buffer),stdin);
+    fgets(
+        buffer,
+        sizeof(buffer),
+        stdin
+    );
 
     return 0;
 }

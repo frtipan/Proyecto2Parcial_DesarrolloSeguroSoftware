@@ -2,15 +2,15 @@
 
 int main() {
 
-    char buffer[50];
+    char msg[50];
 
-    fgets(
-        buffer,
-        sizeof(buffer),
-        stdin
+    snprintf(
+        msg,
+        sizeof(msg),
+        "Mensaje seguro"
     );
 
-    printf("%s", buffer);
+    printf("%s", msg);
 
     return 0;
 }
