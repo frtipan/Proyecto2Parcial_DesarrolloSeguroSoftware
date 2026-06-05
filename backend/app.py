@@ -29,7 +29,7 @@ app.register_blueprint(
 def home():
 
     return {
-        "message": "Secure Code Detector API",
+        "message": "Secure Code Detector API.",
         "status": "running"
     }
 
