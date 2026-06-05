@@ -11,7 +11,7 @@ sys.path.append(
     )
 )
 
-from ml.predict import predict_code
+from src.ml.predict import predict_code
 from backend.notifications.telegram_bot import send_message
 
 # =====================================
