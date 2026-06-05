@@ -34,6 +34,43 @@ jobs:
           pip install -r requirements.txt
           pip install requests
 
+      - name: Mostrar Secrets
+        run: |
+          python - <<EOF
+          import os
+
+          print("TOKEN EXISTE:", bool(os.environ.get("TELEGRAM_TOKEN")))
+          print("CHAT_ID EXISTE:", bool(os.environ.get("TELEGRAM_CHAT_ID")))
+
+          if os.environ.get("TELEGRAM_TOKEN"):
+              print("TOKEN:", os.environ["TELEGRAM_TOKEN"][:10] + "...")
+
+          if os.environ.get("TELEGRAM_CHAT_ID"):
+              print("CHAT:", os.environ["TELEGRAM_CHAT_ID"])
+          EOF
+
+      - name: Telegram Prueba
+        run: |
+          python - <<EOF
+          import requests
+          import os
+
+          url = f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage"
+
+          r = requests.post(
+              url,
+              json={
+                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+                  "text": "🚀 PRUEBA GITHUB ACTIONS"
+              }
+          )
+
+          print("STATUS:", r.status_code)
+          print("RESPUESTA:")
+          print(r.text)
+
+          EOF
+
       - name: Security Check
         run: |
           python src/ci_cd/security_check.py sample.c
@@ -42,104 +79,21 @@ jobs:
         run: |
           pytest
 
-      - name: Telegram Inicio
-        run: |
-          python - <<EOF
-          import requests, os
-          requests.post(
-              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
-              json={
-                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "🔍 Pipeline iniciado"
-              }
-          )
-          EOF
-
-      - name: Telegram Código Seguro
+      - name: Telegram Final
         if: success()
         run: |
           python - <<EOF
-          import requests, os
-          requests.post(
-              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
-              json={
-                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "✅ Código seguro"
-              }
-          )
-          EOF
+          import requests
+          import os
 
-      - name: Telegram Tests
-        if: success()
-        run: |
-          python - <<EOF
-          import requests, os
-          requests.post(
-              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
-              json={
-                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "🧪 Tests exitosos"
-              }
-          )
-          EOF
-
-      - name: Telegram Merge Test
-        if: success()
-        run: |
-          python - <<EOF
-          import requests, os
           r = requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
               json={
                   "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "🚀 Merge a test realizado correctamente"
+                  "text": "✅ Pipeline completado"
               }
           )
+
+          print(r.status_code)
           print(r.text)
-          EOF
-
-      - name: Add fixing-required label
-        if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: fixing-required
-
-      - name: Add tests-failed label
-        if: failure()
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: tests-failed
-
-      - name: Create Issue
-        if: failure()
-        uses: dacbd/create-issue-action@main
-        with:
-          token: ${{ github.token }}
-          title: Vulnerabilidad detectada
-          body: |
-            El pipeline detectó un error o vulnerabilidad.
-
-            PR:
-            ${{ github.event.pull_request.html_url }}
-
-      - name: Comment Pull Request
-        if: failure()
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          message: |
-            ❌ Vulnerabilidad detectada.
-            El pipeline fue bloqueado.
-
-      - name: Telegram Pipeline Fallido
-        if: failure()
-        run: |
-          python - <<EOF
-          import requests, os
-          requests.post(
-              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
-              json={
-                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "❌ Pipeline fallido"
-              }
-          )
           EOF
