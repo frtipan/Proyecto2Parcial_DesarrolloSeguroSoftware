@@ -11,9 +11,7 @@ permissions:
   issues: write
 
 jobs:
-
   security-check:
-
     runs-on: ubuntu-latest
 
     env:
@@ -21,7 +19,6 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -39,7 +36,6 @@ jobs:
           python -c "from backend.notifications.telegram_bot import send_message; send_message('🔍 Inicio de revisión de seguridad')"
 
       - name: Security Check
-        id: security
         run: |
           python src/ci_cd/security_check.py sample.c
 
@@ -62,11 +58,6 @@ jobs:
         if: success()
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Tests exitosos')"
-
-      - name: Telegram Merge Test
-        if: success()
-        run: |
-          python -c "from backend.notifications.telegram_bot import send_message; send_message('🚀 Merge a test realizado correctamente')"
 
       - name: Add fixing-required label
         if: failure()
@@ -112,3 +103,8 @@ jobs:
         if: failure()
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('❌ Pipeline fallido - PR bloqueado')"
+
+      - name: Telegram Merge Test
+        if: success()
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('🚀 Merge a test realizado correctamente')"
