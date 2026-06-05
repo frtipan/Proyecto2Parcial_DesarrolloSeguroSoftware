@@ -5,14 +5,14 @@ sys.path.append(
     os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
+            "..",
             ".."
         )
     )
 )
 
 from ml.predict import predict_code
-from telegram_bot import send_message
-
+from backend.notifications.telegram_bot import send_message
 
 # =====================================
 # Inicio del análisis
