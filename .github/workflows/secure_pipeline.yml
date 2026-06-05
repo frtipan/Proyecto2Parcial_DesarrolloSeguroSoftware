@@ -11,6 +11,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
     steps:
 
       - name: Checkout
@@ -25,10 +29,33 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Telegram Inicio
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('🔍 Inicio de revisión de seguridad')"
+
       - name: Security Check
         run: |
           python src/ci_cd/security_check.py sample.c
 
+      - name: Telegram Código Seguro
+        if: success()
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Código seguro - Continuando pipeline')"
+
+      - name: Telegram Tests
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('🧪 Tests ejecutándose')"
+
       - name: Run Tests
         run: |
           pytest
+
+      - name: Telegram Tests Exitosos
+        if: success()
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Tests exitosos')"
+
+      - name: Telegram Pipeline Fallido
+        if: failure()
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('❌ Pipeline fallido')"
