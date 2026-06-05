@@ -106,3 +106,8 @@ jobs:
         if: failure()
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('❌ Pipeline fallido - PR bloqueado')"
+
+  - name: Telegram Merge Test
+  if: success()
+  run: |
+    python -c "from backend.notifications.telegram_bot import send_message; send_message('🚀 Merge a test realizado correctamente')"
