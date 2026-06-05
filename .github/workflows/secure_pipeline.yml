@@ -39,7 +39,6 @@ jobs:
           python -c "from backend.notifications.telegram_bot import send_message; send_message('🔍 Inicio de revisión de seguridad')"
 
       - name: Security Check
-        id: security
         run: |
           python src/ci_cd/security_check.py sample.c
 
@@ -62,11 +61,6 @@ jobs:
         if: success()
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Tests exitosos')"
-
-      - name: Telegram Merge Test
-        if: success()
-        run: |
-          python -c "from backend.notifications.telegram_bot import send_message; send_message('🚀 Merge a test realizado correctamente')"
 
       - name: Add fixing-required label
         if: failure()
