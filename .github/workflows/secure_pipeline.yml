@@ -5,6 +5,11 @@ on:
     branches:
       - test
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
 
   security-check:
@@ -34,6 +39,7 @@ jobs:
           python -c "from backend.notifications.telegram_bot import send_message; send_message('🔍 Inicio de revisión de seguridad')"
 
       - name: Security Check
+        id: security
         run: |
           python src/ci_cd/security_check.py sample.c
 
@@ -43,10 +49,12 @@ jobs:
           python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Código seguro - Continuando pipeline')"
 
       - name: Telegram Tests
+        if: success()
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('🧪 Tests ejecutándose')"
 
       - name: Run Tests
+        if: success()
         run: |
           pytest
 
@@ -55,7 +63,52 @@ jobs:
         run: |
           python -c "from backend.notifications.telegram_bot import send_message; send_message('✅ Tests exitosos')"
 
+      - name: Telegram Merge Test
+        if: success()
+        run: |
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('🚀 Merge a test realizado correctamente')"
+
+      - name: Add fixing-required label
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: fixing-required
+
+      - name: Add tests-failed label
+        if: failure()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: tests-failed
+
+      - name: Create Issue
+        if: failure()
+        uses: dacbd/create-issue-action@main
+        with:
+          token: ${{ github.token }}
+          title: Vulnerabilidad o error detectado
+          body: |
+            El pipeline detectó una vulnerabilidad o error.
+
+            Repositorio:
+            ${{ github.repository }}
+
+            Pull Request:
+            ${{ github.event.pull_request.html_url }}
+
+            Revisar el código antes de realizar el merge.
+
+      - name: Comment Pull Request
+        if: failure()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ❌ Vulnerabilidad detectada por IA
+
+            El pipeline fue bloqueado.
+
+            Revisar el código vulnerable y corregirlo antes de continuar.
+
       - name: Telegram Pipeline Fallido
         if: failure()
         run: |
-          python -c "from backend.notifications.telegram_bot import send_message; send_message('❌ Pipeline fallido')"
+          python -c "from backend.notifications.telegram_bot import send_message; send_message('❌ Pipeline fallido - PR bloqueado')"
