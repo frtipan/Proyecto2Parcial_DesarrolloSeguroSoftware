@@ -14,9 +14,22 @@ from ml.predict import predict_code
 from telegram_bot import send_message
 
 
+# =====================================
+# Inicio del análisis
+# =====================================
+
+send_message(
+    "🔍 Inicio de revisión de seguridad"
+)
+
+
 if len(sys.argv) < 2:
 
     print("Debe indicar archivo")
+
+    send_message(
+        "❌ Error: no se indicó archivo para analizar"
+    )
 
     sys.exit(1)
 
@@ -38,17 +51,21 @@ result = predict_code(code)
 print(result)
 
 
+# =====================================
+# Vulnerabilidad encontrada
+# =====================================
+
 if result["result"] == "VULNERABLE":
 
     send_message(
         f"""
-🚨 ALERTA DE SEGURIDAD
+❌ Vulnerabilidad detectada
 
 Archivo:
 {file_path}
 
 Resultado:
-{result['result']}
+VULNERABLE
 
 Confianza:
 {result['confidence']}%
@@ -61,6 +78,8 @@ Motivo:
 
 Recomendación:
 {result.get('recommendation', 'Revisar código')}
+
+PR bloqueado
 """
     )
 
@@ -69,9 +88,13 @@ Recomendación:
     sys.exit(1)
 
 
+# =====================================
+# Código seguro
+# =====================================
+
 send_message(
     f"""
-✅ ANÁLISIS COMPLETADO
+✅ Código seguro
 
 Archivo:
 {file_path}
@@ -83,6 +106,8 @@ Confianza:
 {result['confidence']}%
 
 No se encontraron vulnerabilidades conocidas.
+
+Continuando pipeline
 """
 )
 

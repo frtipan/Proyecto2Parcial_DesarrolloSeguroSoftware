@@ -1,4 +1,4 @@
-from src.api import app
+from backend.api import app
 
 
 def test_api_vulnerable():
