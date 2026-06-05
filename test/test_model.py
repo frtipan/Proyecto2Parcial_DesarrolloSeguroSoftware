@@ -49,4 +49,4 @@ def test_vulnerable():
 
     result = predict_code(code)
 
-    assert result["result"] == "SAFE"
+    assert result["result"] == "VULNERABLE"
