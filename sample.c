@@ -2,9 +2,15 @@
 
 int main() {
 
-    char buffer[10];
+    char msg[50];
 
-    gets(buffer);
+    snprintf(
+        msg,
+        sizeof(msg),
+        "Mensaje seguro"
+    );
+
+    printf("%s", msg);
 
     return 0;
 }
