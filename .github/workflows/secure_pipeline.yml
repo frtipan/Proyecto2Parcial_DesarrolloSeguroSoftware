@@ -25,6 +25,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -50,16 +52,47 @@ jobs:
           )
           EOF
 
-      - name: Obtener archivos modificados 
-        run: | 
-          git diff --name-only origin/${{ github.base_ref }} HEAD > files.txt 
+      - name: Obtener archivos modificados
+        run: |
+          git diff --name-only \
+          ${{ github.event.pull_request.base.sha }} \
+          ${{ github.event.pull_request.head.sha }} > files.txt
+
+          echo "Archivos modificados:"
           cat files.txt
 
-      - name: Security Check 
-        id: security 
-        continue-on-error: true 
-        run: | 
-          while read file do if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]; then echo "Analizando $file" python src/ci_cd/security_check.py "$file" fi done < files.txt
+      - name: Security Check
+        id: security
+        continue-on-error: true
+        run: |
+
+          found=0
+
+          while read file
+          do
+
+            if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]
+            then
+
+              echo "Analizando $file"
+
+              found=1
+
+              python src/ci_cd/security_check.py "$file"
+
+              if [ $? -ne 0 ]
+              then
+                exit 1
+              fi
+
+            fi
+
+          done < files.txt
+
+          if [ $found -eq 0 ]
+          then
+            echo "No se encontraron archivos fuente para analizar"
+          fi
 
       - name: Run Tests
         if: steps.security.outcome == 'success'
@@ -136,5 +169,4 @@ jobs:
 
       - name: Fail Job
         if: steps.security.outcome == 'failure'
-        run: |
-          exit 1
+        run: exit 1
