@@ -50,18 +50,23 @@ jobs:
           )
           EOF
 
-      - name: Security Check
-        id: security
-        continue-on-error: true
-        run: |
-          python src/ci_cd/security_check.py sample.c
+      - name: Obtener archivos modificados 
+        run: | 
+          git diff --name-only origin/${{ github.base_ref }} HEAD > files.txt 
+          cat files.txt
+
+      - name: Security Check 
+        id: security 
+        continue-on-error: true 
+        run: | 
+          while read file do if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]; then echo "Analizando $file" python src/ci_cd/security_check.py "$file" fi done < files.txt
 
       - name: Run Tests
         if: steps.security.outcome == 'success'
         run: |
           pytest
 
-      - name: Telegram Pipeline Exitoso
+      - name: Telegram Tests Exitosos
         if: steps.security.outcome == 'success'
         run: |
           python - <<EOF
@@ -71,7 +76,22 @@ jobs:
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
               json={
                   "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "✅ Pipeline exitoso"
+                  "text": "🧪 Pruebas ejecutadas correctamente"
+              }
+          )
+          EOF
+
+      - name: Telegram Codigo Seguro
+        if: steps.security.outcome == 'success'
+        run: |
+          python - <<EOF
+          import requests, os
+
+          requests.post(
+              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
+              json={
+                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+                  "text": "✅ Código seguro - Continuando pipeline"
               }
           )
           EOF
