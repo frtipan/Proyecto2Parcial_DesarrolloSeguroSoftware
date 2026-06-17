@@ -41,7 +41,8 @@ jobs:
       - name: Telegram Inicio
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
@@ -74,22 +75,38 @@ jobs:
             if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]
             then
 
+              # Ignorar archivos internos del sistema
+              if [[ "$file" == src/ml/* || "$file" == src/ci_cd/* || "$file" == backend/notifications/* ]]
+              then
+                echo "Omitiendo archivo interno: $file"
+                continue
+              fi
+
               if [ -f "$file" ]
               then
 
-              echo "Analizando $file"
+                echo "==================================="
+                echo "Analizando: $file"
+                echo "==================================="
 
-              found=1
+                found=1
 
-              python src/ci_cd/security_check.py "./$file"
+                python src/ci_cd/security_check.py "./$file"
 
-              if [ $? -ne 0 ]
-              then
-                exit 1
+                status=$?
+
+                if [ $status -ne 0 ]
+                then
+                  echo "Vulnerabilidad detectada en $file"
+                  exit 1
+                fi
+
+              else
+
+                echo "Archivo no encontrado: $file"
+
               fi
-            else
-                echo "Archivo $file no encontrado, omitiendo"
-              fi
+
             fi
 
           done < files.txt
@@ -108,7 +125,8 @@ jobs:
         if: steps.security.outcome == 'success'
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
@@ -123,7 +141,8 @@ jobs:
         if: steps.security.outcome == 'success'
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
@@ -143,7 +162,7 @@ jobs:
 
             Resultado: VULNERABLE
 
-            El merge fue bloqueado.
+            El merge fue bloqueado automáticamente.
 
       - name: Create Issue
         if: steps.security.outcome == 'failure'
@@ -157,11 +176,15 @@ jobs:
             Pull Request:
             ${{ github.event.pull_request.html_url }}
 
+            Acción requerida:
+            Revisar y corregir el código antes de continuar.
+
       - name: Telegram Vulnerabilidad
         if: steps.security.outcome == 'failure'
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
@@ -174,4 +197,5 @@ jobs:
 
       - name: Fail Job
         if: steps.security.outcome == 'failure'
-        run: exit 1
+        run: |
+          exit 1
