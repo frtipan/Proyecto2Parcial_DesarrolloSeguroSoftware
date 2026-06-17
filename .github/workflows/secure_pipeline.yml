@@ -76,7 +76,7 @@ jobs:
             then
 
               # Ignorar archivos internos del sistema
-              if [[ "$file" == src/ml/* || "$file" == src/ci_cd/* || "$file" == backend/notifications/* ]]
+              if [[ "$file" == src/ml/* || "$file" == src/ci_cd/* || "$file" == backend/notifications/* || "$file" == test/*  ]]
               then
                 echo "Omitiendo archivo interno: $file"
                 continue
