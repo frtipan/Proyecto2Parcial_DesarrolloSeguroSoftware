@@ -1,12 +1,16 @@
-# safe_example.py
+import os
 
-def saludar(nombre):
-    return f"Hola {nombre}"
+def ejecutar_comando():
 
-def suma(a, b):
-    return a + b
+    comando = input(
+        "Ingrese un comando: "
+    )
+
+    os.system(
+        comando
+    )
+
 
 if __name__ == "__main__":
-    usuario = input("Ingrese su nombre: ")
-    print(saludar(usuario))
-    print("Resultado:", suma(10, 20))
+
+    ejecutar_comando()
