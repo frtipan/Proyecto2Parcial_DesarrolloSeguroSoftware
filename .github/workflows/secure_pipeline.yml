@@ -74,17 +74,22 @@ jobs:
             if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]
             then
 
+              if [ -f "$file" ]
+              then
+
               echo "Analizando $file"
 
               found=1
 
-              python src/ci_cd/security_check.py "$file"
+              python src/ci_cd/security_check.py "./$file"
 
               if [ $? -ne 0 ]
               then
                 exit 1
               fi
-
+            else
+                echo "Archivo $file no encontrado, omitiendo"
+              fi
             fi
 
           done < files.txt
