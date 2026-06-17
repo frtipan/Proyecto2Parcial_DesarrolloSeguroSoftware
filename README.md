@@ -1,8 +1,9 @@
 # Proyecto Segundo Parcial - Desarrollo Seguro de Software
 
-## Integrante
+## Integrantes
 
-- Fernando Tipán
+* Fernando Tipán
+* Kevin Asmal
 
 ---
 
@@ -10,13 +11,13 @@
 
 Sistema desarrollado para la asignatura de Desarrollo Seguro de Software.
 
-El proyecto implementa un modelo de Inteligencia Artificial capaz de detectar vulnerabilidades en código fuente escrito en C/C++ y además integra un ciclo de vida de software seguro mediante automatización CI/CD, análisis de seguridad, pruebas automáticas y despliegue continuo.
+El proyecto implementa un modelo de Inteligencia Artificial capaz de detectar vulnerabilidades en código fuente y además integra un ciclo de vida de software seguro mediante automatización CI/CD, análisis de seguridad, pruebas automáticas y despliegue continuo.
 
 ---
 
 # Objetivo
 
-Detectar automáticamente vulnerabilidades comunes en código fuente utilizando Machine Learning y aplicar prácticas de Desarrollo Seguro de Software durante todo el ciclo de vida del proyecto.
+Diseñar e implementar un pipeline CI/CD seguro que permita detectar automáticamente vulnerabilidades mediante un modelo de Machine Learning basado en minería de datos, garantizando que únicamente el código seguro llegue a producción.
 
 ---
 
@@ -24,34 +25,34 @@ Detectar automáticamente vulnerabilidades comunes en código fuente utilizando 
 
 ## Backend
 
-- Python 3.11
-- Flask
-- Flask-Talisman
-- Flask-Limiter
+* Python 3.11
+* Flask
+* Flask-Talisman
+* Flask-Limiter
 
 ## Inteligencia Artificial
 
-- Scikit-Learn
-- Logistic Regression
-- TF-IDF Vectorizer
-- Pandas
-- NumPy
-- Joblib
+* Scikit-Learn
+* Logistic Regression
+* TF-IDF Vectorizer
+* Pandas
+* NumPy
+* Joblib
 
 ## DevSecOps
 
-- GitHub Actions
-- GitHub Issues
-- Pull Requests
-- Branch Protection Rules
+* GitHub Actions
+* Pull Requests
+* GitHub Issues
+* Branch Protection Rules
 
 ## Notificaciones
 
-- Telegram Bot API
+* Telegram Bot API
 
 ## Despliegue
 
-- Render
+* Render
 
 ---
 
@@ -76,54 +77,94 @@ SAFE / VULNERABLE
 
 ---
 
-# Metodología de Desarrollo Seguro
+# Estructura del Proyecto
 
-El proyecto fue desarrollado siguiendo principios de Secure Software Development Lifecycle (SSDLC).
+```text
+Proyecto2Parcial_DesarrolloSeguroSoftware
+│
+├── app.py
+├── requirements.txt
+│
+├── models
+│     └── model.joblib
+│
+├── data
+│     └── juliet_balanced.csv
+│
+├── src
+│     ├── api
+│     ├── controllers
+│     ├── ml
+│     │      ├── train.py
+│     │      └── predict.py
+│     │
+│     ├── ci_cd
+│     │      ├── security_check.py
+│     │      └── deploy.py
+│     │
+│     └── ndt
+│            └── diff_analyzer.py
+│
+├── test
+│     ├── test_api.py
+│     └── test_model.py
+│
+└── .github
+      └── workflows
+             secure_pipeline.yml
+```
+
+---
+
+# Metodología SSDLC
+
+El proyecto fue desarrollado siguiendo el enfoque Secure Software Development Life Cycle.
 
 ## Fase de Análisis
 
-Se identificaron amenazas y vulnerabilidades comunes presentes en aplicaciones desarrolladas en lenguaje C.
+Se identificaron amenazas y vulnerabilidades comunes:
 
-Vulnerabilidades consideradas:
-
-- Buffer Overflow
-- Uso de gets()
-- strcpy()
-- strcat()
-- Manejo inseguro de memoria
+* Buffer Overflow
+* Command Injection
+* Code Injection
+* Uso inseguro de funciones del sistema
+* Manejo inseguro de memoria
 
 ---
 
 ## Fase de Diseño Seguro
 
-Se diseñó una arquitectura separando:
+La arquitectura fue dividida en:
 
-- API REST
-- Modelo de Inteligencia Artificial
-- Pipeline CI/CD
-- Sistema de notificaciones
-
-Además se definieron controles de seguridad para proteger la aplicación.
+* API REST
+* Módulo de IA
+* Pipeline CI/CD
+* Sistema de notificaciones
+* Despliegue continuo
 
 ---
 
 ## Fase de Implementación Segura
 
-Se implementaron mecanismos de protección:
+### Flask-Talisman
 
-### Security Headers
+Permite agregar:
 
-Mediante Flask-Talisman.
-
-### Rate Limiting
-
-Mediante Flask-Limiter.
+* Strict-Transport-Security
+* X-Frame-Options
+* Content-Security-Policy
 
 Configuración:
 
 ```python
 Talisman(app)
+```
 
+### Flask-Limiter
+
+Protección contra abuso del API.
+
+```python
 Limiter(
     key_func=get_remote_address,
     app=app,
@@ -135,106 +176,126 @@ Limiter(
 
 ## Fase de Verificación
 
-Se desarrollaron pruebas automáticas utilizando Pytest.
+Se desarrollaron pruebas automáticas con Pytest.
 
 Casos evaluados:
 
-- Código seguro
-- Código vulnerable
-
-Además se ejecutan automáticamente en cada Pull Request.
+* Código seguro en C
+* Código vulnerable en C
+* Código seguro en Python
+* Código vulnerable en Python
 
 ---
 
 ## Fase de Despliegue
 
-Se realizó despliegue continuo utilizando Render.
-
-La aplicación se encuentra disponible públicamente mediante una URL segura.
+La aplicación fue desplegada en Render mediante integración continua.
 
 ---
 
-# Ciclo de Vida Seguro Implementado
+# Dataset Utilizado
+
+Dataset balanceado:
 
 ```text
-Desarrollo
-    │
-    ▼
-Pull Request
-    │
-    ▼
-Análisis IA
-    │
-    ▼
-Tests Automatizados
-    │
-    ▼
-Validación de Seguridad
-    │
-    ▼
-Merge
-    │
-    ▼
-Deploy Render
+Juliet Test Suite
+```
+
+Clases:
+
+* SAFE
+* VULNERABLE
+
+Cantidad de muestras:
+
+```text
+1564 registros
+
+782 SAFE
+782 VULNERABLE
 ```
 
 ---
 
-# Dataset
+# Entrenamiento del Modelo
 
-Se utilizó un conjunto de ejemplos de código clasificados como:
+Flujo utilizado:
 
-- SAFE
-- VULNERABLE
-
-Ejemplo vulnerable:
-
-```c
-gets(buffer);
-```
-
-Ejemplo seguro:
-
-```c
-fgets(buffer,sizeof(buffer),stdin);
+```text
+Dataset
+     │
+     ▼
+Extracción de Features
+     │
+     ▼
+TF-IDF
+     │
+     ▼
+Logistic Regression
+     │
+     ▼
+model.joblib
 ```
 
 ---
 
-# Inteligencia Artificial
+# Features Utilizadas
 
-## Preprocesamiento
+## TF-IDF
 
-Antes del entrenamiento se realizó extracción de características utilizando:
-
-### TF-IDF (Term Frequency - Inverse Document Frequency)
-
-TF-IDF permite transformar fragmentos de código fuente en vectores numéricos para que puedan ser procesados por algoritmos de Machine Learning.
-
-Implementación:
+Representación vectorial del código fuente.
 
 ```python
-vectorizer = TfidfVectorizer()
+TfidfVectorizer()
 ```
+
+## Features Manuales
+
+### Funciones peligrosas
+
+* gets()
+* strcpy()
+* strcat()
+* sprintf()
+* scanf()
+* system()
+* eval()
+* exec()
+* os.system()
+
+### Sanitizadores
+
+* fgets()
+* strncpy()
+* snprintf()
+* sanitize()
+* escape()
+
+### Otras características
+
+* Número de funciones peligrosas
+* Número de sanitizadores
+* Longitud del código
+* Número de líneas
 
 ---
 
-## Modelo Utilizado
+# Modelo Utilizado
 
-Se utilizó un modelo supervisado de clasificación:
+Modelo supervisado:
 
 ```python
 LogisticRegression()
 ```
 
-El modelo fue entrenado para clasificar fragmentos de código en dos categorías:
+Clasifica:
 
-- SAFE
-- VULNERABLE
+* SAFE
+* VULNERABLE
 
 ---
 
-## Flujo de Predicción
+# Flujo de Predicción
 
 ```text
 Código Fuente
@@ -253,13 +314,13 @@ SAFE / VULNERABLE
 
 # Accuracy del Modelo
 
-Accuracy obtenida:
+Resultado obtenido:
 
 ```text
 95.41%
 ```
 
-Cumpliendo el requisito mínimo solicitado:
+Cumpliendo el requisito mínimo:
 
 ```text
 ≥ 82%
@@ -269,7 +330,7 @@ Cumpliendo el requisito mínimo solicitado:
 
 # Pipeline DevSecOps
 
-## Estructura de Ramas
+## Ramas Implementadas
 
 ```text
 dev
@@ -283,47 +344,57 @@ main
 
 # Flujo CI/CD
 
-1. Desarrollo en rama dev
-2. Pull Request hacia test
-3. Security Check
-4. Ejecución de Tests
-5. Comentario automático
-6. Creación automática de Issue
-7. Notificación Telegram
+1. Pull Request dev → test
+2. Revisión de seguridad mediante IA
+3. Bloqueo automático si existe vulnerabilidad
+4. Ejecución de pruebas
+5. Creación automática de Issues
+6. Comentarios automáticos
+7. Notificaciones Telegram
 8. Merge hacia test
-9. Pull Request hacia main
-10. Despliegue automático en Render
+9. Merge hacia main
+10. Despliegue automático
 
 ---
 
 # Automatizaciones Implementadas
 
-## Detección Automática de Vulnerabilidades
+## Security Check
 
-El pipeline analiza automáticamente el código enviado mediante Pull Request.
+Analiza automáticamente los cambios enviados.
 
-Cuando detecta vulnerabilidades:
+Si detecta una vulnerabilidad:
 
-- Bloquea el merge
-- Crea una Issue
-- Agrega comentarios automáticos
-- Envía notificaciones Telegram
+* Bloquea el merge
+* Crea una Issue
+* Agrega comentarios
+* Envía mensajes Telegram
 
 ---
 
-## Comentario Automático
+## Tests Automatizados
+
+Pruebas unitarias con:
+
+```bash
+pytest
+```
+
+---
+
+## Comentarios Automáticos
 
 ```text
 ❌ Vulnerabilidad detectada por IA
 
 Resultado: VULNERABLE
 
-El merge fue bloqueado.
+El merge fue bloqueado automáticamente.
 ```
 
 ---
 
-## Creación Automática de Issues
+## Issues Automáticas
 
 Ejemplo:
 
@@ -337,73 +408,73 @@ Vulnerabilidad detectada por IA
 
 ### fixing-required
 
-Aplicada cuando se detecta una vulnerabilidad.
+Aplicada cuando existe una vulnerabilidad.
 
 ### tests-failed
 
-Aplicada cuando las pruebas fallan.
+Aplicada cuando fallan las pruebas.
 
 ---
 
 # Notificaciones Telegram
 
-## Inicio de Validación
+### Inicio de revisión
 
 ```text
 🔍 Inicio revisión de seguridad
 ```
 
-## Código Seguro
+### Código seguro
 
 ```text
 ✅ Código seguro
 ```
 
-## Tests Exitosos
+### Pruebas exitosas
 
 ```text
 🧪 Tests exitosos
 ```
 
-## Merge Exitoso
+### Merge exitoso
 
 ```text
 🚀 Merge a test realizado correctamente
 ```
 
-## Pipeline Fallido
+### Pipeline fallido
 
 ```text
 ❌ Pipeline fallido
 ```
 
+### Vulnerabilidad detectada
+
+```text
+🚨 Vulnerabilidad detectada
+```
+
 ---
 
-# Protección de Ramas
-
-Configurada para:
+# Branch Protection Rules
 
 ## Rama test
 
-- Pull Request obligatorio
-- Checks obligatorios
-- Sin push directo
+* Pull Request obligatorio
+* Checks obligatorios
+* Sin push directo
 
 ## Rama main
 
-- Pull Request obligatorio
-- Checks obligatorios
-- Sin push directo
+* Pull Request obligatorio
+* Checks obligatorios
+* Sin push directo
 
 ---
 
 # API REST
 
-## Endpoint Principal
-
-```http
-GET /
-```
+## GET /
 
 Respuesta:
 
@@ -416,17 +487,54 @@ Respuesta:
 
 ---
 
-## Endpoint Health Check
-
-```http
-GET /health
-```
+## GET /health
 
 Respuesta:
 
 ```json
 {
   "status": "ok"
+}
+```
+
+---
+
+# Ejemplo de Vulnerabilidad Detectada
+
+Código vulnerable:
+
+```c
+char buffer[10];
+
+gets(buffer);
+```
+
+Resultado:
+
+```json
+{
+  "result":"VULNERABLE",
+  "confidence":99.0,
+  "vulnerability":"Buffer Overflow"
+}
+```
+
+---
+
+# Ejemplo de Código Seguro
+
+```c
+char buffer[50];
+
+fgets(buffer,sizeof(buffer),stdin);
+```
+
+Resultado:
+
+```json
+{
+  "result":"SAFE",
+  "confidence":95.0
 }
 ```
 
@@ -474,21 +582,45 @@ pytest
 
 ---
 
+# Cumplimiento del Proyecto
+
+| Requisito                  | Estado |
+| -------------------------- | ------ |
+| Modelo de IA propio        | ✅      |
+| Logistic Regression        | ✅      |
+| Dataset público            | ✅      |
+| Accuracy superior al 82%   | ✅      |
+| Pull Requests obligatorios | ✅      |
+| Branch Protection Rules    | ✅      |
+| GitHub Actions             | ✅      |
+| Tests automáticos          | ✅      |
+| Telegram Bot               | ✅      |
+| Comentarios automáticos    | ✅      |
+| Issues automáticas         | ✅      |
+| SSDLC                      | ✅      |
+| DevSecOps                  | ✅      |
+| Shift Left Security        | ✅      |
+| Despliegue en Render       | ✅      |
+
+---
+
 # Resultados Alcanzados
 
-✅ Inteligencia Artificial para detección de vulnerabilidades
+✅ Inteligencia Artificial
 
-✅ TF-IDF para extracción de características
+✅ TF-IDF
 
-✅ Logistic Regression para clasificación
+✅ Logistic Regression
 
 ✅ Backend Seguro
 
 ✅ SSDLC
 
-✅ GitHub Actions
-
 ✅ DevSecOps
+
+✅ Shift Left Security
+
+✅ GitHub Actions
 
 ✅ Pull Requests obligatorios
 
@@ -498,12 +630,12 @@ pytest
 
 ✅ Comentarios automáticos
 
-✅ Notificaciones Telegram
-
-✅ Despliegue en Render
+✅ Telegram Bot
 
 ✅ Integración Continua
 
 ✅ Entrega Continua Segura
+
+✅ Despliegue Automático
 
 ✅ Accuracy superior al 82%

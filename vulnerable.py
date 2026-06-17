@@ -1,16 +1,7 @@
-import os
-
-def ejecutar_comando():
-
-    comando = input(
-        "Ingrese un comando: "
-    )
-
-    os.system(
-        comando
-    )
+def suma(a, b):
+    return a + b
 
 
-if __name__ == "__main__":
+resultado = suma(10, 20)
 
-    ejecutar_comando()
+print("Resultado:", resultado)
