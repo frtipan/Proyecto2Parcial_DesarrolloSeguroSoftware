@@ -25,6 +25,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -39,7 +41,8 @@ jobs:
       - name: Telegram Inicio
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
@@ -50,28 +53,102 @@ jobs:
           )
           EOF
 
+      - name: Obtener archivos modificados
+        run: |
+          git diff --name-only \
+          ${{ github.event.pull_request.base.sha }} \
+          ${{ github.event.pull_request.head.sha }} > files.txt
+
+          echo "Archivos modificados:"
+          cat files.txt
+
       - name: Security Check
         id: security
         continue-on-error: true
         run: |
-          python src/ci_cd/security_check.py sample.c
+
+          found=0
+
+          while read file
+          do
+
+            if [[ "$file" == *.py || "$file" == *.c || "$file" == *.cpp ]]
+            then
+
+              # Ignorar archivos internos del sistema
+              if [[ "$file" == src/ml/* || "$file" == src/ci_cd/* || "$file" == backend/notifications/* || "$file" == test/*  ]]
+              then
+                echo "Omitiendo archivo interno: $file"
+                continue
+              fi
+
+              if [ -f "$file" ]
+              then
+
+                echo "==================================="
+                echo "Analizando: $file"
+                echo "==================================="
+
+                found=1
+
+                python src/ci_cd/security_check.py "./$file"
+
+                status=$?
+
+                if [ $status -ne 0 ]
+                then
+                  echo "Vulnerabilidad detectada en $file"
+                  exit 1
+                fi
+
+              else
+
+                echo "Archivo no encontrado: $file"
+
+              fi
+
+            fi
+
+          done < files.txt
+
+          if [ $found -eq 0 ]
+          then
+            echo "No se encontraron archivos fuente para analizar"
+          fi
 
       - name: Run Tests
         if: steps.security.outcome == 'success'
         run: |
           pytest
 
-      - name: Telegram Pipeline Exitoso
+      - name: Telegram Tests Exitosos
         if: steps.security.outcome == 'success'
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
               json={
                   "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-                  "text": "✅ Pipeline exitoso"
+                  "text": "🧪 Pruebas ejecutadas correctamente"
+              }
+          )
+          EOF
+
+      - name: Telegram Codigo Seguro
+        if: steps.security.outcome == 'success'
+        run: |
+          python - <<EOF
+          import requests
+          import os
+
+          requests.post(
+              f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",
+              json={
+                  "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+                  "text": "✅ Código seguro - Continuando pipeline"
               }
           )
           EOF
@@ -85,7 +162,7 @@ jobs:
 
             Resultado: VULNERABLE
 
-            El merge fue bloqueado.
+            El merge fue bloqueado automáticamente.
 
       - name: Create Issue
         if: steps.security.outcome == 'failure'
@@ -99,11 +176,15 @@ jobs:
             Pull Request:
             ${{ github.event.pull_request.html_url }}
 
+            Acción requerida:
+            Revisar y corregir el código antes de continuar.
+
       - name: Telegram Vulnerabilidad
         if: steps.security.outcome == 'failure'
         run: |
           python - <<EOF
-          import requests, os
+          import requests
+          import os
 
           requests.post(
               f"https://api.telegram.org/bot{os.environ['TELEGRAM_TOKEN']}/sendMessage",

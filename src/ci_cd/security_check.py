@@ -14,6 +14,7 @@ sys.path.append(
 from src.ml.predict import predict_code
 from backend.notifications.telegram_bot import send_message
 
+
 # =====================================
 # Inicio del análisis
 # =====================================
@@ -22,6 +23,10 @@ send_message(
     "🔍 Inicio de revisión de seguridad"
 )
 
+
+# =====================================
+# Validar parámetro
+# =====================================
 
 if len(sys.argv) < 2:
 
@@ -36,6 +41,43 @@ if len(sys.argv) < 2:
 
 file_path = sys.argv[1]
 
+
+# =====================================
+# Validar extensión
+# =====================================
+
+allowed_extensions = (
+    ".py",
+    ".c",
+    ".cpp"
+)
+
+if not file_path.endswith(allowed_extensions):
+
+    print(
+        f"Archivo ignorado: {file_path}"
+    )
+
+    sys.exit(0)
+
+
+# =====================================
+# Validar existencia
+# =====================================
+
+if not os.path.exists(file_path):
+
+    print(
+        f"Archivo no encontrado: {file_path}"
+    )
+
+    sys.exit(1)
+
+
+# =====================================
+# Leer archivo
+# =====================================
+
 with open(
     file_path,
     "r",
@@ -45,6 +87,10 @@ with open(
 
     code = f.read()
 
+
+# =====================================
+# Ejecutar modelo
+# =====================================
 
 result = predict_code(code)
 
@@ -83,7 +129,9 @@ PR bloqueado
 """
     )
 
-    print("Vulnerabilidad detectada")
+    print(
+        "Vulnerabilidad detectada"
+    )
 
     sys.exit(1)
 
@@ -111,6 +159,8 @@ Continuando pipeline
 """
 )
 
-print("Código seguro")
+print(
+    "Código seguro"
+)
 
 sys.exit(0)
