@@ -1,21 +1,12 @@
-import subprocess
+# safe_example.py
 
-opciones_permitidas = {
-    "fecha": ["date"],
-    "directorio": ["pwd"]
-}
+def saludar(nombre):
+    return f"Hola {nombre}"
 
-comando = input("Ingrese una opción (fecha/directorio): ")
+def suma(a, b):
+    return a + b
 
-if comando in opciones_permitidas:
-    resultado = subprocess.run(
-        opciones_permitidas[comando],
-        capture_output=True,
-        text=True,
-        check=True
-    )
-
-    print(resultado.stdout)
-
-else:
-    print("Opción no permitida")
+if __name__ == "__main__":
+    usuario = input("Ingrese su nombre: ")
+    print(saludar(usuario))
+    print("Resultado:", suma(10, 20))
