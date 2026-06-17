@@ -1,53 +1,21 @@
-import os
-import sqlite3
 import subprocess
 
-def login():
-    username = input("Usuario: ")
-    password = input("Password: ")
+opciones_permitidas = {
+    "fecha": ["date"],
+    "directorio": ["pwd"]
+}
 
-    conn = sqlite3.connect("users.db")
-    cursor = conn.cursor()
+comando = input("Ingrese una opción (fecha/directorio): ")
 
-    # SQL Injection
-    query = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
+if comando in opciones_permitidas:
+    resultado = subprocess.run(
+        opciones_permitidas[comando],
+        capture_output=True,
+        text=True,
+        check=True
+    )
 
-    cursor.execute(query)
+    print(resultado.stdout)
 
-    result = cursor.fetchone()
-
-    if result:
-        print("Login correcto")
-
-        # Command Injection
-        cmd = input("Ingrese comando: ")
-        os.system(cmd)
-
-        # Dangerous eval
-        code = input("Ingrese código Python: ")
-        eval(code)
-
-    else:
-        print("Credenciales incorrectas")
-
-    conn.close()
-
-
-def backup():
-    file_name = input("Archivo: ")
-
-    # Command Injection
-    subprocess.call("cp " + file_name + " backup/", shell=True)
-
-
-def read_config():
-    path = input("Ruta configuración: ")
-
-    with open(path, "r") as f:
-        print(f.read())
-
-
-if __name__ == "__main__":
-    login()
-    backup()
-    read_config()
+else:
+    print("Opción no permitida")
