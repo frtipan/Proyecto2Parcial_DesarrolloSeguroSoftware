@@ -19,13 +19,17 @@ DANGEROUS = [
     "exec",
     "eval",
     "scanf",
-    "sprintf"
+    "sprintf",
+    "os.system",
+    "subprocess.popen",
+    "pickle.loads"
 ]
 
 SANITIZERS = [
     "snprintf",
     "strncpy",
     "fgets",
+    "strncat",
     "escape",
     "sanitize"
 ]
@@ -33,7 +37,7 @@ SANITIZERS = [
 
 def extract_manual_features(code):
 
-    code = str(code)
+    code = str(code).lower()
 
     dangerous_count = sum(
         code.count(x)
@@ -65,6 +69,116 @@ df = pd.read_csv(
     "data/juliet_balanced.csv"
 )
 
+# =====================================
+# EJEMPLOS EXTRA PARA C Y PYTHON
+# =====================================
+
+extra_examples = pd.DataFrame({
+
+    "code": [
+
+        # C seguros
+        """
+char buffer[50];
+fgets(buffer,sizeof(buffer),stdin);
+""",
+
+        """
+char destino[50];
+strncpy(destino,origen,sizeof(destino));
+""",
+
+        """
+snprintf(buffer,sizeof(buffer),"%s",cadena);
+""",
+
+        # Python seguros
+        """
+def suma(a,b):
+    return a+b
+
+print(suma(2,3))
+""",
+
+        """
+class Persona:
+
+    def __init__(self,nombre):
+        self.nombre = nombre
+""",
+
+        # C vulnerables
+        """
+gets(buffer);
+""",
+
+        """
+strcpy(destino,origen);
+""",
+
+        """
+strcat(destino,origen);
+""",
+
+        """
+sprintf(buffer,"%s",cadena);
+""",
+
+        """
+system(cmd);
+""",
+
+        # Python vulnerables
+        """
+import os
+
+cmd=input()
+
+os.system(cmd)
+""",
+
+        """
+eval(user_input)
+""",
+
+        """
+exec(code)
+""",
+
+        """
+import subprocess
+
+subprocess.Popen(cmd)
+"""
+    ],
+
+    "label": [
+
+        0,
+        0,
+        0,
+        0,
+        0,
+
+        1,
+        1,
+        1,
+        1,
+        1,
+
+        1,
+        1,
+        1,
+        1
+    ]
+
+})
+
+df = pd.concat(
+    [df, extra_examples],
+    ignore_index=True
+)
+
 X_text = df["code"]
 
 y = df["label"]
@@ -72,8 +186,11 @@ y = df["label"]
 print("Extrayendo features manuales...")
 
 manual_features = [
+
     extract_manual_features(code)
+
     for code in X_text
+
 ]
 
 manual_features = csr_matrix(
@@ -83,7 +200,7 @@ manual_features = csr_matrix(
 print("Generando TF-IDF...")
 
 tfidf = TfidfVectorizer(
-    max_features=3000
+    max_features=5000
 )
 
 X_tfidf = tfidf.fit_transform(
