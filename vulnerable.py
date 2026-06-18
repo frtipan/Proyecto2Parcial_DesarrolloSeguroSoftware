@@ -1,7 +1,5 @@
-def suma(a, b):
-    return a + b
+import os
 
+comando = input("Ingrese un comando: ")
 
-resultado = suma(10, 20)
-
-print("Resultado:", resultado)
+os.system(comando)
