@@ -1,7 +1,20 @@
-def suma(a, b):
-    return a + b
+import subprocess
 
+comando = input("Ingrese un comando (fecha o directorio): ")
 
-resultado = suma(10, 20)
+comandos_permitidos = {
+    "fecha": ["date"],
+    "directorio": ["ls"]
+}
 
-print("Resultado:", resultado)
+if comando in comandos_permitidos:
+    resultado = subprocess.run(
+        comandos_permitidos[comando],
+        capture_output=True,
+        text=True
+    )
+
+    print(resultado.stdout)
+
+else:
+    print("Comando no permitido")
