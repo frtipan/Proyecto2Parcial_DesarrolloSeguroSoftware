@@ -1,6 +1,6 @@
 import subprocess
 
-comando = input("Ingrese un comando (fecha o directorio): ")
+comando = input("Ingrese un comando ")
 
 comandos_permitidos = {
     "fecha": ["date"],
