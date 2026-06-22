@@ -27,6 +27,150 @@ Diseñar e implementar un pipeline CI/CD seguro que permita detectar automática
 
 ---
 
+# Etapas del Pipeline CI/CD Seguro
+
+## Etapa 1: Revisión de Seguridad con Inteligencia Artificial
+
+El pipeline se activa automáticamente cuando se crea un Pull Request desde la rama `dev` hacia la rama `test`.
+
+Durante esta etapa se realiza:
+
+* Obtención de los archivos modificados.
+* Extracción de características del código fuente.
+* Clasificación del código mediante un modelo de Machine Learning basado en Logistic Regression.
+
+Si el modelo clasifica el código como **VULNERABLE**:
+
+* Se bloquea el Pull Request.
+* Se crea una Issue automáticamente.
+* Se agrega un comentario en el Pull Request.
+* Se envía una notificación mediante Telegram.
+* Se solicita la corrección del código.
+
+Si el modelo clasifica el código como **SAFE**, el pipeline continúa con la siguiente etapa.
+
+---
+
+## Etapa 2: Ejecución de Pruebas Automáticas
+
+Una vez aprobada la revisión de seguridad, se ejecutan las pruebas automáticas mediante Pytest.
+
+Las pruebas verifican:
+
+* Correcta clasificación de código seguro.
+* Correcta clasificación de código vulnerable.
+* Funcionamiento del modelo de Inteligencia Artificial.
+* Funcionamiento de la API REST.
+
+Si alguna prueba falla:
+
+* Se detiene el pipeline.
+* Se bloquea el merge.
+* Se envía una notificación mediante Telegram.
+
+Si todas las pruebas son exitosas, se continúa con la siguiente etapa.
+
+---
+
+## Etapa 3: Integración hacia la rama Test
+
+Después de superar la revisión de seguridad y las pruebas automáticas, el código es integrado en la rama `test`.
+
+La rama `test` funciona como entorno de validación antes de pasar a producción.
+
+Durante esta etapa se generan notificaciones automáticas indicando que:
+
+* El código es seguro.
+* Las pruebas fueron ejecutadas correctamente.
+
+---
+
+## Etapa 4: Integración hacia Producción
+
+Una vez validado el funcionamiento en la rama `test`, se crea un Pull Request desde:
+
+test → main
+
+La rama `main` representa el entorno de producción.
+
+Solo el código que haya superado todas las verificaciones anteriores puede llegar a producción.
+
+---
+
+## Etapa 5: Despliegue Continuo
+
+Después del merge hacia la rama `main`, se realiza el despliegue automático de la aplicación.
+
+El despliegue se efectúa en Render, permitiendo que la API se encuentre disponible en línea.
+
+URL de producción:
+
+https://proyecto2parcial-desarrollosegurosoftware.onrender.com/
+
+---
+
+## Etapa 6: Sistema de Notificaciones
+
+Durante todo el ciclo de vida del pipeline se envían notificaciones automáticas mediante Telegram.
+
+Eventos notificados:
+
+* Inicio de revisión de seguridad.
+* Resultado de la clasificación del modelo.
+* Resultado de las pruebas automáticas.
+* Código seguro.
+* Vulnerabilidades detectadas.
+* Bloqueo del Pull Request.
+* Despliegue exitoso en producción.
+
+---
+
+## Flujo General del Pipeline
+
+Desarrollador
+
+↓
+
+Push en rama dev
+
+↓
+
+Pull Request dev → test
+
+↓
+
+Etapa 1: Revisión de Seguridad con IA
+
+↓
+
+Etapa 2: Ejecución de Pruebas Automáticas
+
+↓
+
+Etapa 3: Integración en rama test
+
+↓
+
+Pull Request test → main
+
+↓
+
+Etapa 4: Integración hacia producción
+
+↓
+
+Etapa 5: Despliegue en Render
+
+↓
+
+Etapa 6: Notificaciones Telegram
+
+↓
+
+Aplicación disponible en producción
+
+
+---
 # Tecnologías Utilizadas
 
 ## Backend

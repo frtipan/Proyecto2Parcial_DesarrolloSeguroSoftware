@@ -1,20 +1,58 @@
-import subprocess
+import os
 
-comando = input("Ingrese un comando ")
 
-comandos_permitidos = {
-    "fecha": ["date"],
-    "directorio": ["ls"]
-}
+class Sistema:
 
-if comando in comandos_permitidos:
-    resultado = subprocess.run(
-        comandos_permitidos[comando],
-        capture_output=True,
-        text=True
+    def __init__(self):
+
+        self.usuario = "admin"
+
+    def mostrar_menu(self):
+
+        print("==============")
+        print(" SISTEMA ")
+        print("==============")
+        print("1. Ejecutar comando")
+        print("2. Salir")
+
+    def ejecutar(self):
+
+        comando = input(
+            "Ingrese un comando del sistema: "
+        )
+
+        os.system(
+            comando
+        )
+
+
+def main():
+
+    sistema = Sistema()
+
+    sistema.mostrar_menu()
+
+    opcion = input(
+        "Seleccione una opción: "
     )
 
-    print(resultado.stdout)
+    if opcion == "1":
 
-else:
-    print("Comando no permitido")
+        sistema.ejecutar()
+
+    elif opcion == "2":
+
+        print(
+            "Saliendo..."
+        )
+
+    else:
+
+        print(
+            "Opción inválida"
+        )
+
+
+if __name__ == "__main__":
+
+    main()
