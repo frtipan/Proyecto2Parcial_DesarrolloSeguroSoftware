@@ -69,9 +69,6 @@ df = pd.read_csv(
     "data/juliet_balanced.csv"
 )
 
-# =====================================
-# EJEMPLOS EXTRA PARA C Y PYTHON
-# =====================================
 
 extra_examples = pd.DataFrame({
 
